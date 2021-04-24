@@ -19,10 +19,10 @@ router.post('/users/login', async (req,res) => {
     try{
         const user = await User.findByData(req.body.email,req.body.password)
         const token = await user.AuthToken()
-        res.send({user,token})
+        res.send({user ,token})
     }
     catch(e){
-        res.status(400).send(e)
+        res.status(400).send({error:"Invalid Credentials"})
     }
 })
 
@@ -39,51 +39,40 @@ router.post('/users/logout', auth, async (req,res) => {
     }
 })
 
+router.post('/users/logoutAll', auth, async (req,res) => {
+    try{
+        req.user.tokens = []
+        await req.user.save()
+        res.send()
+    }catch(e){
+        req.status(500).send()
+    }
+})
+
 router.get('/users/me', auth, async (req, res) => {
   res.send(req.user)
 })
 
-router.get('/users/:id', async (req,res) => {
-    try{
-        const user = await User.findById(req.params.id)
-        if(!user) {
-            return res.status(404).send()
-        }
-        res.send(user)
-    }
-    catch(e){
-        res.status(500).send(e)
-    }
-})
-
-router.patch('/users/:id', async(req,res) =>{
+router.patch('/users/me',auth, async(req,res) =>{
     const allowed = ['name','password','age','email']
     const isValid =  Object.keys(req.body).every((e) => allowed.includes(e))
     if(!isValid){
         return res.status(400).send({error: 'Invalid variables'})
     }
     try{
-        const user = await User.findById(req.params.id)
-        Object.keys(req.body).forEach((e) => user[e] = req.body[e])
-        await user.save()
-         
-        if(!user){
-            return res.status(404).send()
-        }
-        res.send(user)
+        Object.keys(req.body).forEach((e) => req.user[e] = req.body[e])
+        await req.user.save()
+        res.send(req.user)
     }
     catch(e){
         res.status(400).send(e)
     }
 })
 
-router.delete('/users/:id', async (req,res) =>{
+router.delete('/users/me', auth, async (req,res) =>{
     try{
-        const user = await User.findByIdAndDelete(req.params.id)
-        if(!user){
-            return res.status(404).send({error: "User not found"})
-        }
-        res.send(user)
+        await req.user.remove()
+        res.send(req.user)
     }
     catch(e){
         res.status(400).send(e)
