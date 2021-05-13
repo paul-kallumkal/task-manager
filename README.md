@@ -1,6 +1,7 @@
 # Task Manager API  
 
 ### JSON data (when required) must be in the request body in a JSON format
+### All Authorization should be sent as a bearer token in the request header
 ### Base link: https://generic-task-manager.herokuapp.com/  
 &nbsp;
 
